@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 
     char server_fifo_name[11] = "server_fifo";
     char client_fifo_name[15] = "client_fifo";
-    int client= getpid();;
+    int client= getpid();
     do{
         char client_fifo_name[15] = "client_fifo";
         printf("Please enter the service you need: \n");
@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "%s: failed to write CLIENT FIFO %s\n", "", server_fifo_name);
                 return 2;
             }
-            //sleep(3);
+            sleep(1);
             printf("Reading from %s \n",client_fifo_name);
             fd2 = open(client_fifo_name,O_RDONLY);
             if(fd2 < 0){
@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
                 return 3;
             }
 
-            int r = read(fd2, response, sizeof(char) * 16);
+            int r = read(fd2, response, sizeof(char) * 32);
             if ( r < 0){
                 fprintf(stderr, "%s: failed %d to read FIFO %s\n", argv[argc-argc],r, client_fifo_name);
                 return 4;

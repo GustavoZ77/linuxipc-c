@@ -6,13 +6,22 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 
 #define FIFO_NAME "server_fifo"
 
+struct mesg_buffer {
+    long mesg_type;
+    char mesg_text[100];
+} message;
+
 int main() {
+
+    key_t key;
     char request[0x64];
     int len = 0x65;
-    char *response = "zzsdfsdfg";
+    char response[32];
 
     printf("Listenig for request..\n");
 
@@ -63,35 +72,58 @@ int main() {
                 if(id == 0){
                     //child code
                     int child_id = getpid();
-                    int ss_id = 123;
+                    int ss_id = 123987;
                     close(fd3[0]);
                     printf("Excuting %d child process, Getting 'Servicio social' for id  %s \n",child_id,client_name);
-                    if(write(fd3[1], &ss_id, sizeof(int)*3)  == -1){
+                    if(write(fd3[1], &ss_id, sizeof(int)*6)  == -1){
                         printf(" Error to write child PIPE \n");
                         return 10;
                     }
                     close(fd3[1]);
-                return 0;
                 }else{
                     //parent code
                     close(fd3[1]);
                     int nss_id;
-                    if(read(fd3[0], &nss_id, sizeof(int)*3) == -1){
+                    if(read(fd3[0], &nss_id, sizeof(int)*6) == -1){
                         printf("Error to read from childt PIPE \n");
                         return 7;
                     }
-                    printf("SSID: %d \n",&nss_id);
                     close(fd3[0]);
+                    sprintf(response,"Response: OK %d",nss_id);
+                    sleep(1);
+                    if (write(fd2, response, sizeof(char )*32) <= 0){
+                        fprintf(stderr, "%s: failed to write client_fifo_name %s\n", "", client_fifo_name);
+                        return 1;
+                    }
+                    printf("----------------------DONE----------------------------- \n");
                 }
             }
-            if (write(fd2, response, strlen(response)) <= 0){
-                fprintf(stderr, "%s: failed to write client_fifo_name %s\n", "", client_fifo_name);
-                return 1;
+            int comp = strcmp(service_type, "pp");
+            if(comp== 0){
+                int msgid;
+                key = ftok("mserverfile2", 77);
+                msgid = msgget(key, 0777 | IPC_CREAT);
+                message.mesg_type = 1;
+
+                strcpy(message.mesg_text, client_name);
+
+                msgsnd(msgid, &message, sizeof(message), 0);
+                printf("waiting for response...\n");
+
+                msgrcv(msgid, &message, sizeof(message), 1, 0);
+                sprintf(response,"Response: OK %s",message.mesg_text);
+                printf("responding %s ...\n",response);
+                if (write(fd2, response, sizeof(char )*32) <= 0){
+                    fprintf(stderr, "%s: failed to write client_fifo_name %s\n", "", client_fifo_name);
+                    return 1;
+                }
+                printf("----------------------DONE----------------------------- \n");
+
             }
-        printf("wrote %s in file %s \n",response, client_fifo_name);
         close(fd2);
-        memset(request, 0, 64);
         }
+        memset(response, 0, 32);
+        memset(request, 0, 64);
         sleep(1);
     }
     return 0;
