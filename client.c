@@ -45,7 +45,7 @@ int main(int argc, char *argv[])
                 fprintf(stderr, "%s: failed to write CLIENT FIFO %s\n", "", server_fifo_name);
                 return 2;
             }
-            sleep(3);
+            //sleep(3);
             printf("Reading from %s \n",client_fifo_name);
             fd2 = open(client_fifo_name,O_RDONLY);
             if(fd2 < 0){
