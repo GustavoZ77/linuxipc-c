@@ -6,11 +6,14 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+int search_in_file();
+
 int main(int argc, char *argv[])
 {
     int fd,fd2;
     char s[5] = "";
     char input[3];
+    char user_id[4];
     char response[32] ;
 
     char server_fifo_name[11] = "server_fifo";
@@ -20,7 +23,8 @@ int main(int argc, char *argv[])
         char client_fifo_name[15] = "client_fifo";
         printf("Please enter the service you need: \n");
         printf("Type pp for Practicas profesionales or  ss for Servicios profesiones: \n");
-        scanf("%s", &input);
+        scanf("%s", input);
+
         if(strcmp(input, "ss") == 0 || strcmp(input, "pp") ==0){
             sprintf(client_fifo_name, "%s%d", client_fifo_name, client);
 
@@ -32,8 +36,15 @@ int main(int argc, char *argv[])
             }
 
             sprintf(s,"%s%s",s,input);
+
+
+            printf("Enter the user ID: \n");
+            scanf("%s", user_id);
+
             sprintf(s,"%s%s",s,":");
             sprintf(s,"%s%d",s,client);
+
+            sprintf(s,"%s:%s",s,user_id);
             printf("SENDIND TO SERVER!!...  %s \n",s);
 
             if ((fd = open("server_fifo", O_WRONLY)) < 0){
